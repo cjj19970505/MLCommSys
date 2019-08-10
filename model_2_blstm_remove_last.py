@@ -9,10 +9,14 @@ from Util import FromFileGenerator
 import os
 
 class RemoveLastGenerator(FromFileGenerator):
+    removeCount = 50
     def __init__(self, phFilePath, binFilePath):
         return super().__init__(phFilePath, binFilePath)
     def PreProcessPerData(self, dataTuple):
-        return (dataTuple[0][:-(5*12)], dataTuple[1][:-5])
+        if RemoveLastGenerator.removeCount == 0:
+            return dataTuple
+        else:
+            return (dataTuple[0][:-(RemoveLastGenerator.removeCount*12)], dataTuple[1][:-RemoveLastGenerator.removeCount])
 
 while True:
     try:
@@ -33,7 +37,7 @@ displayDataGenerator = RemoveLastGenerator('.\\Dataset\\exp1\\divided\\disp_ph.t
 train_dataset = tf.data.Dataset.from_generator(generator=trainDataGenerator.GetNext, output_types=(tf.float32, tf.int32), output_shapes=(tf.TensorShape(None), tf.TensorShape(None)))
 test_dataset = tf.data.Dataset.from_generator(generator=testDataGenerator.GetNext, output_types=(tf.float32, tf.int32), output_shapes=(tf.TensorShape(None), tf.TensorShape(None)))
 display_dataset = tf.data.Dataset.from_generator(generator=displayDataGenerator.GetNext, output_types=(tf.float32, tf.int32), output_shapes=(tf.TensorShape(None), tf.TensorShape(None)))
-out_sequence_length = 95
+out_sequence_length = 100 - RemoveLastGenerator.removeCount
 with tf.variable_scope('TrainingData'):
     trainBatchSize = 100
     trainDataSet = train_dataset.repeat().batch(trainBatchSize)
